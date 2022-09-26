@@ -1,0 +1,49 @@
+import pandas as pd
+import numpy as np
+log=pd.read_csv("log_data.csv")
+sor=log.sort_values(by=['user_id','timestamp'])
+happy=sor[sor['event'].isin(["OpenApp","ViewLoanApplyIntro","StartLoanApply","CompleteIDCertification","EndLoanApply"])]
+hrppy=happy[['user_id','event','timestamp']]
+hppy=hrppy.set_index(np.arange(11112418))
+a=[]
+k=0
+userid=11
+cnt=0
+hppy.at[cnt,'event']
+while(cnt<11112418) :
+    if hppy.at[cnt,'event']=="OpenApp" : k+=1
+    elif hppy.at[cnt,'user_id']!=userid : 
+        k+=1
+        userid=hppy.at[cnt,'user_id']
+    cnt+=1
+    a.append(k)
+hppy['sessionnum']=a
+grp=hppy.groupby('sessionnum')
+real=grp.first()
+real=real[['user_id','timestamp']]
+real=real.rename(columns={'timestamp':'starttime'})
+real['endtime']=grp['timestamp'].last()
+t=grp['event'].unique()
+a=[]
+cnt=1
+while(cnt<=3839578):
+    a.append('CompleteIDCertification' in t.at[cnt])
+    cnt+=1
+real['certificated']=a
+real.starttime = pd.to_datetime(real.starttime)
+real.endtime=pd.to_datetime(real.endtime)
+a=11
+t=[]
+cnt=1
+st=0
+while cnt<=3839578 :
+    if real['user_id'].at[cnt]==a : 
+        st+=1
+        t.append(st)
+    else :
+        a=real['user_id'].at[cnt]
+        st=1
+        t.append(st)
+    cnt+=1
+real["nth_log_of_user"]=t
+real['sessionlength']=real['endtime']-real['starttime']
